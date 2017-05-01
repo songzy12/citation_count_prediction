@@ -1,7 +1,12 @@
 import code 
-DATADIR = '/home/songzy/HW3/data/'
 
-def dump_results(results, result_path=DATADIR+'results.txt'):
+DATADIR = '/home/songzy/HW3/data/'
+OUTDIR = '/home/songzy/HW3/result/'
+
+def dump_results(results, result_path=OUTDIR+'results.txt'):
+    """
+    Dump a list of tuple (author id, predicted citation count) to file
+    """
     with open(result_path, 'w') as f:
         for k, v in results:
             f.write(k+'\t'+str(v)+'\n')
@@ -54,17 +59,23 @@ def parse_chunk(chunk):
                  'references': references} 
 
 def get_train(train_path=DATADIR+'citation_train.txt'):
+    """
+    return: a dict of {author id: citation count}
+    """
     # paper info is till 2011, citation count is till 2016
     m = {}
     with open(train_path) as f:
         line = f.readline()
         while line:
             id_, name, count = line.strip().split('\t')
-            m[id_] = count
+            m[id_] = int(count)
             line = f.readline()
     return m
 
 def get_test(test_path=DATADIR+'citation_test.txt'):
+    """
+    return: a list of author ids
+    """
     l = []
     with open(test_path) as f:
         line = f.readline()
