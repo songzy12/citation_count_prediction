@@ -1,9 +1,12 @@
 import code
+import pickle
 import numpy as np
 from sklearn import datasets, linear_model
 
 from feature import get_features
 from util import get_train
+
+MODEL_DIR = "/home/songzy/HW3/model/"
 
 def get_training_set():
     """
@@ -19,36 +22,33 @@ def get_training_set():
 
 def train():
     citation_X, target = get_training_set()
-    
+   
+    # TODO
     citation_X_train = citation_X[:1000]
-    citation_X_test = citation_X[-20:]
+    citation_X_test = citation_X[-1000:]
     citation_y_train = target[:1000]
-    citation_y_test = target[-20:]
+    citation_y_test = target[-1000:]
 
     regr = linear_model.LinearRegression()
     #code.interact(local=locals())
     regr.fit(citation_X_train, citation_y_train)
     print('Coefficients: \n', regr.coef_)
     print("Mean squared error: %.2f"
-          % np.mean((regr.predict(citation_X_test) - citation_y_test) ** 2))
+          % np.mean((regr.predict(citation_X_test) - citation_y_test) ** 2)**0.5)
     print('Variance score: %.2f' % regr.score(citation_X_test, citation_y_test))
     return regr 
 
-def get_citation_count(model, features):
-    """
-    param: model, features
-    return: the predicted count using the model on the features
-    """
-    return model.predict(features)
+def dump_model(model,path=MODEL_DIR+'regr.pkl'):
+    with open(path, 'w') as f:
+        pickle.dump(model, f)
+        
 
-def dump_model(model):
-    return
-
-def load_model():
+def load_model(path=MODEL_DIR+'regr.pkl'):
     """
     return: the model
     """
-    model = None
+    with open(path) as f:
+        model = pickle.load(f) 
     return model
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 from util import get_test, dump_results
 from feature import get_features
-from model import load_model, get_citation_count
+from model import load_model 
 
 def get_results(author_test):
     """
@@ -9,18 +9,10 @@ def get_results(author_test):
     """
     results = []
     model = load_model()
-    for id_ in author_test:
-        results += (id_, predict(id_, model)),
-    return results
+    # TODO
+    test_features = [get_features(id_) for id_ in author_test]
+    return zip(author_test, model.predict(test_features))
  
-def predict(id_, model):
-    """
-    param: a single author id
-    return: the predicted citation count
-    """
-    features = get_features(id_)
-    return get_citation_count(model, features)
-        
 if __name__ == '__main__':
     author_test = get_test()
     results = get_results(author_test)
