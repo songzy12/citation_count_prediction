@@ -1,4 +1,7 @@
 *.pyc
-data/*
+*.swp
+feature/
+data/
+log/
 result/
 model/

@@ -42,7 +42,6 @@ def dump_model(model,path=MODEL_DIR+'regr.pkl'):
     with open(path, 'w') as f:
         pickle.dump(model, f)
         
-
 def load_model(path=MODEL_DIR+'regr.pkl'):
     """
     return: the model
