@@ -84,7 +84,7 @@ def parse_chunk(chunk):
 
 def get_train(train_path=DATADIR+'citation_train.txt'):
     """
-    return: a dict of {author id: citation count}
+    return: a dict of {author name: citation count}
     """
     # paper info is till 2011, citation count is till 2016
     m = {}
@@ -92,20 +92,20 @@ def get_train(train_path=DATADIR+'citation_train.txt'):
         line = f.readline()
         while line:
             id_, name, count = line.strip().split('\t')
-            m[id_] = int(count)
+            m[name] = int(count)
             line = f.readline()
     return m
 
 def get_test(test_path=DATADIR+'citation_test.txt'):
     """
-    return: a list of author ids
+    return: a list of author names
     """
     l = []
     with open(test_path) as f:
         line = f.readline()
         while line:
             id_, name = line.strip().split('\t')
-            l.append(id_)
+            l.append(name)
             line = f.readline()
     return l
     

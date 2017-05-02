@@ -1,8 +1,6 @@
 ## TODO:
 
 * get_features:
-* load_model:
-* dump_model:
 * cross_validation:
 
 ## Citation Count Prediction

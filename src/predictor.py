@@ -11,7 +11,7 @@ def get_results(author_test):
     model = load_model()
     # TODO
     test_features = [get_features(id_) for id_ in author_test]
-    return zip(author_test, model.predict(test_features))
+    return zip(author_test, max(0, model.predict(test_features)))
  
 if __name__ == '__main__':
     author_test = get_test()

@@ -44,6 +44,18 @@ def save_author_paper_venue(path='../feature/'):
                 name2venue[paper.conference] = Venue(paper.conference)
             name2venue[paper.conference].papers.append(paper.id)
 
+    def set_author_rank():
+        logger.info("feature author rank computation begins")
+        authors = name2author.values()
+        for author in authors:
+            author.citation_count = sum([len(id2paper[paper].cited) for paper in author.papers])
+        authors.sort(key=lambda author: author.citation_count)
+        for i, author in enumerate(authors):
+            author.rank = i   
+        logger.info("feature author rank computation ends")
+
+    set_author_rank()
+
     with open(path+'author.pkl', 'w') as f:
         pickle.dump(name2author, f)
     with open(path+'paper.pkl', 'w') as f:
@@ -59,6 +71,9 @@ def load_author_paper_venue(path='../feature/'):
     with open(path+'venue.pkl') as f:
         name2venue = pickle.load(f)
     return name2author, id2paper, name2venue
+
+save_author_paper_venue()
+name2author, id2paper, name2venue = load_author_paper_venue()
 
 def feature_topic_rank(d):
     pass
@@ -77,16 +92,20 @@ def feature_venue_centrality(venue):
     pass
 
 def feature_h_index(author):
-    return 0
+    counts = sorted([len(id2paper[paper].cited) for paper in name2author[author].papers])
+    i = 0
+    while i < len(counts) and i < counts[i]:
+        i += 1
+    return i
 
 def feature_author_rank(author):
-    return 0
+    return name2author[author].rank
 
 def feature_productivity(author):
-    return 0
+    return len(name2author[author].papers)
 
 def feature_sociality(author):
-    return 0
+    return len(name2author[author].coauthors)
 
 def feature_authority(author):
     return 0
@@ -105,8 +124,6 @@ def get_features(author):
     return features
 
 if __name__ == '__main__':
-    #save_author_paper_venue()
-    name2author, id2paper, name2venue = load_author_paper_venue()
 
     author = name2author.itervalues().next()
     paper = id2paper.itervalues().next()
