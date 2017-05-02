@@ -72,7 +72,6 @@ def load_author_paper_venue(path='../feature/'):
         name2venue = pickle.load(f)
     return name2author, id2paper, name2venue
 
-save_author_paper_venue()
 name2author, id2paper, name2venue = load_author_paper_venue()
 
 def feature_topic_rank(d):
@@ -124,7 +123,7 @@ def get_features(author):
     return features
 
 if __name__ == '__main__':
-
+    #save_author_paper_venue()
     author = name2author.itervalues().next()
     paper = id2paper.itervalues().next()
     venue = name2venue.itervalues().next()

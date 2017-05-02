@@ -1,3 +1,3 @@
-python feature.py
-python model.py
-python predictor.py
+#time python feature.py
+time python model.py
+time python predictor.py
