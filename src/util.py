@@ -1,5 +1,26 @@
 import code 
+import logging
 from collections import defaultdict
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+sh = logging.StreamHandler(stream=None)
+sh.setLevel(logging.INFO)
+
+# create file handler
+fh = logging.FileHandler((__name__).join(["../log/", '.log']), mode='w')
+fh.setLevel(logging.DEBUG)
+
+# create formatter
+fmt = "%(asctime)-15s %(levelname)s %(filename)s %(lineno)d %(process)d %(message)s"
+datefmt = "%a %d %b %Y %H:%M:%S"
+formatter = logging.Formatter(fmt, datefmt)
+# add handler and formatter to logger
+fh.setFormatter(formatter)
+sh.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(sh)
 
 class Author:
     def __init__(self, name, id_):
@@ -43,11 +64,9 @@ def get_name2author(author_path=DATADIR+'author.txt'):
     """
     name2author = {}
     with open(author_path) as f:
-        line = f.readline()
-        while line:
+        for i, line in enumerate(f):
             id_, name = line.strip().split('\t')
             name2author[name] = Author(name, id_)
-            line = f.readline()
     return name2author 
 
 def get_id2paper(paper_path=DATADIR+'paper.txt'):
@@ -102,11 +121,9 @@ def get_test(test_path=DATADIR+'citation_test.txt'):
     """
     l = []
     with open(test_path) as f:
-        line = f.readline()
-        while line:
+        for i, line in enumerate(f):
             id_, name = line.strip().split('\t')
             l.append(name)
-            line = f.readline()
     return l
     
 if __name__ == '__main__':

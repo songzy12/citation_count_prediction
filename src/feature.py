@@ -1,22 +1,7 @@
 import code
-import logging
 import pickle
 
-from util import get_name2author, get_id2paper, Author, Paper, Venue
-
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-# create file handler
-log_path = (__name__).join(["../log/", '.log'])
-fh = logging.FileHandler(log_path)
-fh.setLevel(logging.DEBUG)
-# create formatter
-fmt = "%(asctime)-15s %(levelname)s %(filename)s %(lineno)d %(process)d %(message)s"
-datefmt = "%a %d %b %Y %H:%M:%S"
-formatter = logging.Formatter(fmt, datefmt)
-# add handler and formatter to logger
-fh.setFormatter(formatter)
-logger.addHandler(fh)
+from util import get_name2author, get_id2paper, Author, Paper, Venue, logger
 
 def save_author_paper_venue(path='../feature/'):
     name2author = get_name2author()
@@ -44,16 +29,28 @@ def save_author_paper_venue(path='../feature/'):
                 name2venue[paper.conference] = Venue(paper.conference)
             name2venue[paper.conference].papers.append(paper.id)
 
+    def set_venue_rank():
+        logger.info("feature venue rank computation begins")
+        venues = name2venue.values()
+        for venue in venues:
+            venue.citation_count = sum([len(id2paper[paper].cited) for paper in venue.papers])
+        venues.sort(key=lambda venue: venue.citation_count)
+        for i, venue in enumerate(venues):
+            venue.rank = i+1
+        logger.info("feature venue rank computation ends")
+
     def set_author_rank():
         logger.info("feature author rank computation begins")
         authors = name2author.values()
         for author in authors:
             author.citation_count = sum([len(id2paper[paper].cited) for paper in author.papers])
+            author.reference_count = sum([len(id2paper[paper].references) for paper in author.papers])
         authors.sort(key=lambda author: author.citation_count)
         for i, author in enumerate(authors):
-            author.rank = i   
+            author.rank = i+1   
         logger.info("feature author rank computation ends")
 
+    set_venue_rank()
     set_author_rank()
 
     with open(path+'author.pkl', 'w') as f:
@@ -72,60 +69,90 @@ def load_author_paper_venue(path='../feature/'):
         name2venue = pickle.load(f)
     return name2author, id2paper, name2venue
 
+logger.info("name, paper, venue to load")
 name2author, id2paper, name2venue = load_author_paper_venue()
+logger.info("name, paper, venue loaded")
 
 def feature_topic_rank(d):
-    pass
+    return []
     
 def feature_diversity(d):
-    pass
+    return []
 
-def feature_recency(d):
+def feature_recency(author):
     # now is 2016
-    return 2016 - d.year
+    author.years = [2016 - id2paper[paper].year for paper in author.papers]
+    return [sum(author.years)*1.0/len(author.years) if len(author.years) else 0]
  
-def feature_venue_rank(venue):
-    pass
+def feature_venue_rank(author):
+    author.venue_ranks = [name2venue[id2paper[paper].conference].rank for paper in author.papers if id2paper[paper].conference]
+    return [sum(author.venue_ranks)*1.0/len(author.venue_ranks) if len(author.venue_ranks) else 0]
 
-def feature_venue_centrality(venue):
-    pass
+def feature_venue_centrality(author):
+    """
+    venue centrality: like author authority
+    """
+    return []
 
 def feature_h_index(author):
-    counts = sorted([len(id2paper[paper].cited) for paper in name2author[author].papers])
+    """
+    author's h index
+    """
+    counts = sorted([len(id2paper[paper].cited) for paper in author.papers])
     i = 0
     while i < len(counts) and i < counts[i]:
         i += 1
-    return i
+    return [i]
 
-def feature_author_rank(author):
-    return name2author[author].rank
+def feature_author_rank(author_name):
+    """
+    author's total citation count rank
+    author's total citation
+    author's average citation
+    author's total reference
+    author's average reference
+    """
+    author = name2author[author_name]
+    if not len(author.papers):
+        logger.info("author %s with papers length 0" % author_name)
+    return [author.rank, author.citation_count, author.reference_count,
+            author.citation_count*1.0/len(author.papers) if len(author.papers) else 0,
+            author.reference_count*1.0/len(author.papers) if len(author.papers) else 0]
+
 
 def feature_productivity(author):
-    return len(name2author[author].papers)
+    return [len(author.papers)]
 
 def feature_sociality(author):
-    return len(name2author[author].coauthors)
+    return [len(author.coauthors)]
 
 def feature_authority(author):
-    return 0
+    return []
 
-def get_features(author):
+def get_features(author_name):
     """
     param: author id
     return: a list of features
     """
     features = []
-    features.append(feature_h_index(author))
-    features.append(feature_author_rank(author))
-    features.append(feature_productivity(author))
-    features.append(feature_sociality(author))
-    features.append(feature_authority(author))
+    author = name2author[author_name]
+    features += feature_h_index(author)
+    features += feature_author_rank(author_name)
+    features += feature_productivity(author)
+    features += feature_sociality(author)
+    features += feature_authority(author)
+
+    features += feature_venue_rank(author)
+    features += feature_venue_centrality(author)
+
+    features += feature_recency(author)
+
+    logger.debug("%s: %s" % (author_name, features))
     return features
 
 if __name__ == '__main__':
-    #save_author_paper_venue()
-    author = name2author.itervalues().next()
-    paper = id2paper.itervalues().next()
-    venue = name2venue.itervalues().next()
-
-    code.interact(local=locals())
+    save_author_paper_venue()
+    #author = name2author.itervalues().next()
+    #paper = id2paper.itervalues().next()
+    #venue = name2venue.itervalues().next()
+    #code.interact(local=locals())
