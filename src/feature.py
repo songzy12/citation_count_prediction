@@ -82,7 +82,12 @@ def feature_diversity(d):
 def feature_recency(author):
     # now is 2016
     author.years = [2016 - id2paper[paper].year for paper in author.papers]
-    return [sum(author.years)*1.0/len(author.years) if len(author.years) else 0]
+    if not len(author.years):
+        return [0,0,0,0]
+    author.years.sort()
+    return [sum(author.years)*1.0/len(author.years),
+            author.years[len(author.years)/2],
+            author.years[0], author.years[-1]]
  
 def feature_venue_rank(author):
     author.venue_ranks = [name2venue[id2paper[paper].conference].rank for paper in author.papers if id2paper[paper].conference]
@@ -124,7 +129,7 @@ def feature_productivity(author):
     return [len(author.papers)]
 
 def feature_sociality(author):
-    return [len(author.coauthors)]
+    return [len(author.coauthors), sum(author.coauthors.values())]
 
 def feature_authority(author):
     return []
