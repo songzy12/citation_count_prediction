@@ -9,11 +9,10 @@
 
 ## model
 
-* train model
+* read train data
+* train model parameters
 
 ## predictor 
 
-* read train data
-* train model parameters
 * read test data
 * call predictor, dump result

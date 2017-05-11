@@ -3,6 +3,15 @@
 This is an implementation of paper [1]  (not exactlty).
 Most of the features used are enlighted by this paper.
 
+## How to run
+
+First set up the directory tree as follows, then put the raw data under `data`.
+Just type the following command in your console to reproduce our results:
+
+```
+cd src && ./run.sh
+```
+
 ## Project Structure
 
 ### data/
