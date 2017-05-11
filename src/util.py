@@ -9,7 +9,7 @@ sh = logging.StreamHandler(stream=None)
 sh.setLevel(logging.INFO)
 
 # create file handler
-fh = logging.FileHandler((__name__).join(["../log/", '.log']), mode='w')
+fh = logging.FileHandler((__name__).join(["../log/", '.log']))
 fh.setLevel(logging.DEBUG)
 
 # create formatter

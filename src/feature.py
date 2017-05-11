@@ -1,7 +1,11 @@
 import code
+import math
 import pickle
 
 from util import get_name2author, get_id2paper, Author, Paper, Venue, logger
+
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.decomposition import NMF, LatentDirichletAllocation 
 
 def save_author_paper_venue(path='../feature/'):
     name2author = get_name2author()
@@ -50,8 +54,33 @@ def save_author_paper_venue(path='../feature/'):
             author.rank = i+1   
         logger.info("feature author rank computation ends")
 
+    def set_topics():
+        documents = []
+        for k, v in id2paper.items():
+            documents += (k, v.abstract),
+
+        no_features = 1000
+        # LDA can only use raw term counts for LDA because it is a probabilistic graphical model
+        tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2, max_features=no_features, stop_words='english')
+        tf = tf_vectorizer.fit_transform([x[-1] for x in documents])
+        tf_feature_names = tf_vectorizer.get_feature_names()
+
+        no_topics = 20 
+        topic_citation = [0]*no_topics
+        # Run LDA
+        lda = LatentDirichletAllocation(n_topics=no_topics, max_iter=5, learning_method='online', learning_offset=50.,random_state=0).fit_transform(tf)
+
+        for i, t in enumerate(documents):
+            id2paper[t[0]].topic = lda[i]
+            id2paper[t[0]].perplexity = sum([-x*math.log(x) for x in lda[i]])
+            for j, q in enumerate(lda[i]):
+                topic_citation[j] += q * len(id2paper[t[0]].cited)
+        with open(path+'topic_citation.pkl', 'w') as f:
+            pickle.dump(topic_citation, f)
+
     set_venue_rank()
     set_author_rank()
+    set_topics()
 
     with open(path+'author.pkl', 'w') as f:
         pickle.dump(name2author, f)
@@ -73,21 +102,34 @@ logger.info("name, paper, venue to load")
 name2author, id2paper, name2venue = load_author_paper_venue()
 logger.info("name, paper, venue loaded")
 
-def feature_topic_rank(d):
-    return []
+def feature_topic_rank(author):
+    with open('../feature/'+'topic_citation.pkl') as f:
+        topic_citation = pickle.load(f)
+    citation_topic = [(c,i) for i,c in enumerate(topic_citation)]
+    citation_topic.sort()
+    topic_rank = {k[-1]:v for v,k in enumerate(citation_topic)}
+
+    citation = rank = 0
+    for paper in author.papers:
+        for i, t in enumerate(id2paper[paper].topic):
+            citation += topic_citation[i] * t
+            rank += topic_rank[i] * t
+
+    return [citation, rank/len(author.papers) if author.papers else 0]
     
-def feature_diversity(d):
-    return []
+def feature_diversity(author):
+    temp = [id2paper[paper].perplexity for paper in author.papers]
+    if not temp:
+        return [0, 0]
+    return [sum(temp), sum(temp)*1.0/len(temp)]
 
 def feature_recency(author):
     # now is 2016
     author.years = [2016 - id2paper[paper].year for paper in author.papers]
-    if not len(author.years):
-        return [0,0,0,0]
+    if not author.years:
+        return [0, 0]
     author.years.sort()
-    return [sum(author.years)*1.0/len(author.years),
-            author.years[len(author.years)/2],
-            author.years[0], author.years[-1]]
+    return [sum(author.years)*1.0/len(author.years), sum(author.years)]
  
 def feature_venue_rank(author):
     author.venue_ranks = [name2venue[id2paper[paper].conference].rank for paper in author.papers if id2paper[paper].conference]
@@ -119,7 +161,7 @@ def feature_author_rank(author_name):
     """
     author = name2author[author_name]
     if not len(author.papers):
-        logger.info("author %s with papers length 0" % author_name)
+        logger.debug("author %s with papers length 0" % author_name)
     return [author.rank, author.citation_count, author.reference_count,
             author.citation_count*1.0/len(author.papers) if len(author.papers) else 0,
             author.reference_count*1.0/len(author.papers) if len(author.papers) else 0]
@@ -141,6 +183,10 @@ def get_features(author_name):
     """
     features = []
     author = name2author[author_name]
+
+    features += feature_topic_rank(author)
+    features += feature_diversity(author)
+
     features += feature_h_index(author)
     features += feature_author_rank(author_name)
     features += feature_productivity(author)
