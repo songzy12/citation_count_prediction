@@ -2,7 +2,7 @@ import code
 import math
 import pickle
 
-from util import get_name2author, get_id2paper, Author, Paper, Venue, logger
+from util import get_name2author, get_id2paper, get_train, Author, Paper, Venue, logger
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation 
@@ -13,7 +13,7 @@ def save_author_paper_venue(path='../feature/'):
     id2paper = get_id2paper()
     logger.info("%d Papers loaded", len(id2paper))
     name2venue = {}
-    
+
     for id_, paper in id2paper.items():
         for name in paper.authors:
             # set papers of author
@@ -33,6 +33,18 @@ def save_author_paper_venue(path='../feature/'):
                 name2venue[paper.conference] = Venue(paper.conference)
             name2venue[paper.conference].papers.append(paper.id)
 
+    m = get_train()
+
+    for name, author in name2author.items():
+        author.coauthor_train_citation = []
+        for coauthor in author.coauthors:
+            if coauthor in m:
+                author.coauthor_train_citation.append(m[coauthor])
+        if not author.coauthor_train_citation:
+            author.coauthor_train = 0
+        else:
+            author.coauthor_train = sum(author.coauthor_train_citation)/len(author.coauthor_train_citation)
+        
     def set_venue_rank():
         logger.info("feature venue rank computation begins")
         venues = name2venue.values()
@@ -166,12 +178,11 @@ def feature_author_rank(author_name):
             author.citation_count*1.0/len(author.papers) if len(author.papers) else 0,
             author.reference_count*1.0/len(author.papers) if len(author.papers) else 0]
 
-
 def feature_productivity(author):
     return [len(author.papers)]
 
 def feature_sociality(author):
-    return [len(author.coauthors), sum(author.coauthors.values())]
+    return [len(author.coauthors), sum(author.coauthors.values()), author.coauthor_train]
 
 def feature_authority(author):
     return []
