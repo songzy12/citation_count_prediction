@@ -3,6 +3,7 @@ import math
 import pickle
 
 from util import get_name2author, get_id2paper, get_train, Author, Paper, Venue, logger
+import networkx as nx
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation 
@@ -32,6 +33,16 @@ def save_author_paper_venue(path='../feature/'):
             if paper.conference not in name2venue:
                 name2venue[paper.conference] = Venue(paper.conference)
             name2venue[paper.conference].papers.append(paper.id)
+
+    logger.info("feature author page rank computation begins")
+    G = nx.DiGraph()
+    for name, author in name2author.items():
+        for coauthor in author.coauthors.keys():
+            G.add_edge(coauthor, name)
+    pr = nx.pagerank(G)
+    for k, v in pr.items():
+        name2author[k].page_rank = v
+    logger.info("feature author page rank computation ends")
 
     m = get_train()
 
@@ -67,6 +78,7 @@ def save_author_paper_venue(path='../feature/'):
         logger.info("feature author rank computation ends")
 
     def set_topics():
+        logger.info("feature topics computation begins")
         documents = []
         for k, v in id2paper.items():
             documents += (k, v.abstract),
@@ -89,6 +101,7 @@ def save_author_paper_venue(path='../feature/'):
                 topic_citation[j] += q * len(id2paper[t[0]].cited)
         with open(path+'topic_citation.pkl', 'w') as f:
             pickle.dump(topic_citation, f)
+        logger.info("feature topics computation ends")
 
     set_venue_rank()
     set_author_rank()
@@ -185,7 +198,9 @@ def feature_sociality(author):
     return [len(author.coauthors), sum(author.coauthors.values()), author.coauthor_train]
 
 def feature_authority(author):
-    return []
+    if author.page_rank:
+        logger.info(author.name, author.page_rank)
+    return [author.page_rank if author.page_rank else 0]
 
 def get_features(author_name):
     """

@@ -29,6 +29,7 @@ class Author:
 
         self.papers = []
         self.coauthors = defaultdict(int)
+        self.page_rank = 0
 
 class Paper:
     def __init__(self):
