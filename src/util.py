@@ -1,4 +1,4 @@
-import code 
+import code
 import logging
 from collections import defaultdict
 
@@ -22,6 +22,7 @@ sh.setFormatter(formatter)
 logger.addHandler(fh)
 logger.addHandler(sh)
 
+
 class Author:
     def __init__(self, name, id_):
         self.name = name
@@ -30,6 +31,7 @@ class Author:
         self.papers = []
         self.coauthors = defaultdict(int)
         self.page_rank = 0
+
 
 class Paper:
     def __init__(self):
@@ -43,13 +45,16 @@ class Paper:
 
         self.cited = []
 
+
 class Venue:
     def __init__(self, name):
         self.name = name
         self.papers = []
 
+
 DATADIR = '/home/songzy/HW3/data/'
 OUTDIR = '/home/songzy/HW3/result/'
+
 
 def dump_results(results, result_path=OUTDIR+'results.txt'):
     """
@@ -58,6 +63,7 @@ def dump_results(results, result_path=OUTDIR+'results.txt'):
     with open(result_path, 'w') as f:
         for k, v in results:
             f.write(k+'\t'+str(v)+'\n')
+
 
 def get_name2author(author_path=DATADIR+'author.txt'):
     """
@@ -68,7 +74,8 @@ def get_name2author(author_path=DATADIR+'author.txt'):
         for i, line in enumerate(f):
             id_, name = line.strip().split('\t')
             name2author[name] = Author(name, id_)
-    return name2author 
+    return name2author
+
 
 def get_id2paper(paper_path=DATADIR+'paper.txt'):
     """
@@ -88,19 +95,28 @@ def get_id2paper(paper_path=DATADIR+'paper.txt'):
             line = f.readline()
     return id2paper
 
+
 def parse_chunk(chunk):
     paper = Paper()
     for line in chunk:
         t = line[1]
         content = line[2:] if t != 'i' else line[len('#index'):]
-        if t == '*': paper.title = line[2:]
-        elif t == '@': paper.authors = map(lambda x: x.strip(), content.split(','))
-        elif t == 't': paper.year = int(content)
-        elif t == 'c': paper.conference = content
-        elif t == 'i': id_ = paper.id = content
-        elif t == '%': paper.references.append(content)
-        elif t == '!': paper.abstract = content
+        if t == '*':
+            paper.title = line[2:]
+        elif t == '@':
+            paper.authors = map(lambda x: x.strip(), content.split(','))
+        elif t == 't':
+            paper.year = int(content)
+        elif t == 'c':
+            paper.conference = content
+        elif t == 'i':
+            id_ = paper.id = content
+        elif t == '%':
+            paper.references.append(content)
+        elif t == '!':
+            paper.abstract = content
     return id_, paper
+
 
 def get_train(train_path=DATADIR+'citation_train.txt'):
     """
@@ -116,6 +132,7 @@ def get_train(train_path=DATADIR+'citation_train.txt'):
             line = f.readline()
     return m
 
+
 def get_test(test_path=DATADIR+'citation_test.txt'):
     """
     return: a list of author names
@@ -126,7 +143,8 @@ def get_test(test_path=DATADIR+'citation_test.txt'):
             id_, name = line.strip().split('\t')
             l.append(name)
     return l
-    
+
+
 if __name__ == '__main__':
     # author2id, id2author = get_author2id_id2author()
     id2paper = get_id2paper()

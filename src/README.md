@@ -12,7 +12,7 @@
 * read train data
 * train model parameters
 
-## predictor 
+## predictor
 
 * read test data
 * call predictor, dump result
