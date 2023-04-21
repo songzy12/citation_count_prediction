@@ -24,6 +24,7 @@ logger.addHandler(sh)
 
 
 class Author:
+
     def __init__(self, name, id_):
         self.name = name
         self.id = id_
@@ -34,6 +35,7 @@ class Author:
 
 
 class Paper:
+
     def __init__(self):
         self.title = ""
         self.authors = []
@@ -47,6 +49,7 @@ class Paper:
 
 
 class Venue:
+
     def __init__(self, name):
         self.name = name
         self.papers = []
@@ -56,16 +59,16 @@ DATADIR = '/home/songzy/HW3/data/'
 OUTDIR = '/home/songzy/HW3/result/'
 
 
-def dump_results(results, result_path=OUTDIR+'results.txt'):
+def dump_results(results, result_path=OUTDIR + 'results.txt'):
     """
     Dump a list of tuple (author id, predicted citation count) to file
     """
     with open(result_path, 'w') as f:
         for k, v in results:
-            f.write(k+'\t'+str(v)+'\n')
+            f.write(k + '\t' + str(v) + '\n')
 
 
-def get_name2author(author_path=DATADIR+'author.txt'):
+def get_name2author(author_path=DATADIR + 'author.txt'):
     """
     return: one dict, author name to Author
     """
@@ -77,7 +80,7 @@ def get_name2author(author_path=DATADIR+'author.txt'):
     return name2author
 
 
-def get_id2paper(paper_path=DATADIR+'paper.txt'):
+def get_id2paper(paper_path=DATADIR + 'paper.txt'):
     """
     return: one dict, paper id to Paper 
     """
@@ -118,7 +121,7 @@ def parse_chunk(chunk):
     return id_, paper
 
 
-def get_train(train_path=DATADIR+'citation_train.txt'):
+def get_train(train_path=DATADIR + 'citation_train.txt'):
     """
     return: a dict of {author name: citation count}
     """
@@ -133,7 +136,7 @@ def get_train(train_path=DATADIR+'citation_train.txt'):
     return m
 
 
-def get_test(test_path=DATADIR+'citation_test.txt'):
+def get_test(test_path=DATADIR + 'citation_test.txt'):
     """
     return: a list of author names
     """
